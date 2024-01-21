@@ -359,7 +359,8 @@ prox_matrix <- function(dataset,
 
   if(plot_plotly == TRUE){
     matrix_chart %<>% plotly::ggplotly(tooltip = c("text")) %>%
-      plotly::config(displayModeBar = F)
+      plotly::config(displayModeBar = F) %>%
+      plotly::layout(xaxis = list(fixedrange = TRUE), yaxis = list(fixedrange = TRUE))
   }
 
   return(matrix_chart)
