@@ -1,0 +1,26 @@
+Package: politicR
+Title: Analysis of the Portuguese Parliament
+Version: 0.0.0.9000
+Authors@R: 
+    person("Miguel", "Salema", , "miguelsalema1999@gmail.com", role = c("aut", "cre"))
+Description: This package provides functions for a political analysis of the Portuguese parlamentary system.
+License: GPL (>= 3)
+Encoding: UTF-8
+Roxygen: list(markdown = TRUE)
+RoxygenNote: 7.2.3
+Imports: 
+    dplyr,
+    forcats,
+    ggplot2,
+    lubridate,
+    magrittr,
+    plotly,
+    purrr,
+    RColorBrewer,
+    rlang,
+    stringr,
+    tibble,
+    tidyr
+Depends: 
+    R (>= 2.10)
+LazyData: true
