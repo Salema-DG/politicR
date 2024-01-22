@@ -350,7 +350,8 @@ prox_matrix <- function(dataset,
               fontface = 'bold') +
     ggplot2::scale_x_discrete(limits = NULL, expand = ggplot2::expansion(add = 0, mult = c(.01, .01))) +
     ggplot2::scale_y_discrete(limits = NULL, expand = ggplot2::expansion(add = 0, mult = c(.01, .01))) +
-    ggplot2::scale_fill_gradientn(colours = RColorBrewer::brewer.pal(4,"BrBG")) +
+    ggplot2::scale_fill_gradientn(colours = RColorBrewer::brewer.pal(4,"BrBG"),
+                                  na.value = "grey20") +
     ggplot2::theme_minimal() +
     ggplot2::theme(legend.position = "none",
           axis.title = ggplot2::element_blank(),
