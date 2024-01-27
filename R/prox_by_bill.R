@@ -21,7 +21,7 @@
 #'
 #' data("ar_data")
 #' ar_data |>
-#'   filter(legis == 15) %>%
+#'   filter(legis %in% c(14, 15)) %>%
 #'   prox_by_bill(type = "tibble")
 #'
 
@@ -69,8 +69,6 @@ prox_by_bill <- function(data,
       arrange(id_vot,
               factor(partido, levels = order))
 
-
-
   }
 
 
@@ -83,10 +81,47 @@ prox_by_bill <- function(data,
       voto == "favor" ~ 1 * (n_votos/n_dep),
       voto %in% c("ausencia", "abstencao") ~ 0.5 * (n_votos/n_dep),
       voto == "contra" ~ 0 * (n_votos/n_dep)
-      )) %>%
+    )) %>%
     dplyr::group_by(id_vot, partido) %>%
     dplyr::summarize(voto = sum(voto)) %>%
     dplyr::ungroup()
+
+  #----------------------------------------------------------------------------#
+  # Filling the dataset with NAs when parties are not included in a vote
+  # The goal is to have every possible party relationship represented,
+  # If missing, we want an NA, not a missing.
+
+  # vector with all the bills proposed (unique ID of the vote)
+  un_id_vot <- data %>%
+    dplyr::distinct(id_vot) %>%
+    dplyr::pull()
+
+  # vec with all the parties present in the given data
+  un_party <- data$partido %>%
+    unique()
+
+  list_missing_parties <- data %>%
+    dplyr::select(id_vot, partido, voto) %>%
+    split(.$id_vot) %>%
+    purrr::map(pull, partido) %>%
+    purrr::map(~{base::setdiff(un_party, .x)})
+
+  df_missing_parties <-
+    list_missing_parties %>%
+    purrr::map2(names(list_missing_parties), ~{
+      tibble::tibble(
+        id_vot = .y,
+        partido = .x,
+        voto = NA # tibble will expand this column to the size of "partido"
+      )
+    }) %>%
+    purrr::reduce(dplyr::bind_rows)
+
+  # add df_missing_parties to the data
+  data %<>%
+    bind_rows(
+      df_missing_parties
+    )
 
   # for some reason, it loses the ordering
   data %<>%
@@ -112,26 +147,27 @@ prox_by_bill <- function(data,
       tidyr::nest() %>%
       dplyr::ungroup() %>%
       dplyr::mutate(distance = purrr::map(.x = data,
-                            .f = ~{
+                                          .f = ~{
 
-                              vec <- .x %>%
-                                dplyr::select(voto) %>%
-                                # This function computes the distance automatically.
-                                stats::dist(method = "euclidean"#, diag = T, upper = T
-                                ) %>%
-                                c()
+                                            vec <- .x %>%
+                                              dplyr::select(voto) %>%
+                                              # This function computes the distance automatically.
+                                              stats::dist(method = "euclidean"#, diag = T, upper = T
+                                              ) %>%
+                                              c()
 
-                              vec <- 1 - vec # transform distance into proximity
+                                            vec <- 1 - vec # transform distance into proximity
 
-                              vec %>%
-                                tibble::as_tibble()
-                            })) %>%
+                                            vec #%>%
+                                              #tibble::as_tibble()
+                                          })) %>%
       dplyr::select(-data)
   }
 
   # Do all have the same size?
   ntf <- nested_tibble %>%
-    dplyr::mutate(n = purrr::map(distance, nrow)) %>%
+    #dplyr::mutate(n = purrr::map(distance, nrow)) %>%
+    dplyr::mutate(n = length(distance)) %>%
     dplyr::pull(n) %>%
     unlist() %>%
     unique() %>%

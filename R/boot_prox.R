@@ -11,13 +11,19 @@
 #' @export
 #'
 #' @examples
-#'
+#' #ta bem
 #'
 
 boot_prox <- function(data,
-                      indices
+                      indices = NULL
 ) {
 
+  # if the value is not suplied
+  if (is.null(indices)) {
+    indices <- 1:nrow(data)
+  }
+
+  ## this allows replacement in the monte carlo
   d <- data[indices,] # choose the laws
 
   # Add all the vectors
@@ -29,16 +35,16 @@ boot_prox <- function(data,
   # X <- c(as.matrix(X))
 
   vector <-
-    d %>%
-    map(c) %>% #transform the tibbles into multiple vectors
+    d$distance %>%
+    #map(c) %>% #transform the tibbles into multiple vectors
     unlist() %>% # transform into only one vector
     unname() # remove the names
 
-  # number of parties
-  np <- d[[1]] %>% nrow()
+  # number of parties combinations
+  np <- d$distance[[1]] %>% length()
 
-  # number of bills proposed
-  nl <- d %>% length()
+  # number of bills proposed (sample from DGP)
+  nl <- d %>% nrow()
 
   #reached the "rotated list"
   # where each elemtn of the list is a party-party combination vector
