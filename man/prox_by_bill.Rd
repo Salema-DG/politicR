@@ -10,17 +10,21 @@ prox_by_bill(data, type = "tibble", order = "leftright")
 \item{data}{A tibble or data frame}
 
 \item{type}{A string. Can be "list" or "tibble".}
+
+\item{order}{Organization of parties in the prox matrix. "leftright", the default, organizes parties from left to right. "alphabetical" is also possible.}
 }
 \value{
-A tibble or a matrix, where each element is a vote containing the party proximity per bill. But the object is streched.
+A tibble or a list, where each element is a party proximity to a given bill.
 }
 \description{
-Eucledian distance. Ina 2d pane, it's the absolute difference.
-If "list" (the default) the function returns a list of matrices, where each
-elements is a bill. If "tibble", the function returns a tibble where each
-line has another tibble as matrix.
+This function transforms a tidy dataset with roll-call data into party proximity by each vote.
+It outputs a nested tibble or list that shows the Euclidean distance between all party by bill.
+If "list" (the default) the function returns a list of matrices.
+If type = "tibble", the function returns a tibble where each
+line has a vector that is the lower triangular part of a proximity matrix for a bill.
+The lower tringular part is organized from top to bottom, from left to right.
+The function assigns a value of 1 to an MP that votes in favor, 0 to against and 0.5 to abstentions and misses.
 Note: for the boot::boot function, a dataset must be provided.
-But the object returned it streched. The function prox_matrix(2 for now) to transform it into a matrix.
 }
 \examples{
 library(dplyr)

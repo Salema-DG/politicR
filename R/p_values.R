@@ -13,8 +13,6 @@
 #'
 #' @return A named vector with the adjusted p-values.
 #'
-#' @export
-#'
 #' @importFrom magrittr %>%
 #'
 #' @examples
@@ -37,14 +35,14 @@ p_values <- function(lm_object,
 
   #extract the p-values.
   # They are stored in summary(lm)
-  p <- summary(m)$coefficients[, 4]
+  p <- summary(lm_object)$coefficients[, 4]
 
   if (is.null(correction)) {
     return(p)
   } else{
     # adjust the p-value
     adj_p <- p %>%
-      p.adjust(correction) %>%
+      stats::p.adjust(correction) %>%
       round(rounded_to)
 
     return(adj_p)

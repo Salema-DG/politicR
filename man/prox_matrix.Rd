@@ -20,7 +20,9 @@ prox_matrix(
   min_n_votes = 0,
   unanimous = c(0, 1),
   plot_plotly = TRUE,
-  exclude_plot = F
+  plot = TRUE,
+  inference = F,
+  n_boot = 1000
 )
 }
 \arguments{
@@ -46,7 +48,11 @@ prox_matrix(
 
 \item{plot_plotly}{The output is a plotly, not a ggplot matrix.}
 
-\item{exclude_plot}{Return the matrix, not a plot.}
+\item{plot}{Return the dataset p2, not a plot.}
+
+\item{inference}{Use the bootstrapping inference to build confidence intervals.}
+
+\item{n_boot}{Number of re-sampling for the bootstrap.}
 }
 \value{
 A matrix graph.

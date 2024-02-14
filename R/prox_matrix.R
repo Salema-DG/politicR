@@ -18,7 +18,10 @@
 #' @param min_n_votes The relationship between two parties is only shown if it meets this minimum requirement.
 #' @param unanimous If 0, show only non unanimous. If one show only unanimous.
 #' @param plot_plotly The output is a plotly, not a ggplot matrix.
-#' @param exclude_plot Return the matrix, not a plot.
+#' @param plot Return the dataset p2, not a plot.
+#' @param inference Use the bootstrapping inference to build confidence intervals.
+#' @param n_boot Number of re-sampling for the bootstrap.
+#' @param seed_for_boot Seed for the bootstap
 #'
 #' @return A matrix graph.
 #'
@@ -99,7 +102,10 @@ prox_matrix <- function(dataset,
                         min_n_votes = 0,
                         unanimous = c(0,1),
                         plot_plotly = TRUE,
-                        exclude_plot = F
+                        plot = TRUE,
+                        inference = F,
+                        n_boot = 1000,
+                        seed_for_boot = 12345
 ) {
 
   # for the global vars
@@ -112,7 +118,11 @@ prox_matrix <- function(dataset,
   perc_match_for_against_0 <- perc_match_for_against_1 <- proponente <-
   total_dep <- unanime <- vote_stage <- voto <- votos_legis_partido <- NULL
 
-  # Necessary columns
+  #----------------------------------------------------------------------------#
+  # Prepare the data: apply the user choices ####
+  #----------------------------------------------------------------------------#
+
+  # Necessary columns for the votes.
   df_temp <- dataset %>%
     dplyr::select(id_vot,
            partido,
@@ -150,212 +160,223 @@ prox_matrix <- function(dataset,
     dplyr::filter(unanime %in% unanimous)
 
 
-  # lastly, restrict to certain parties
+  # lastly, restrict to certain parties. But we allow for parties to be chosen
+  # with elypsis (...) and as a character vecor
 
-  #parties to keep
   my_parties <- rlang::enexprs(...) #defuse the input
-
   if(length(my_parties) != 0){#apply only if values are supplied
-
     df_temp %<>% dplyr::filter(partido %in% my_parties)
-
   }
-
-  # for the shiny its also useful to select the parties like this
 
   df_temp %<>%
     dplyr::filter(partido %in% vec_parties)
 
-  #Check if df_temp exists/has values
-  #If not, the matrix output should be a NULL value
-  if(df_temp %>% nrow != 0){
 
-    #-----------------
-    # Classify the Vote
-    #------------------
+  if (nrow(df_temp) == 0) {
+    p2 = tibble::tibble(partido = 'Not available')
+  } else{ # the next section only occurs if there is data
 
+  #----------------------------------------------------------------------------#
+  # Calculate the Proximity ####
+  #----------------------------------------------------------------------------#
 
-    # because of liberdade de voto, develop a party index (indice direção de voto), where:
-    df_temp %<>%
-      dplyr::mutate(idv = dplyr::case_when(
-        voto == "favor" ~ 1*(n_votos/n_dep),
-        voto %in% c("ausencia", "abstencao") ~ 0.5*(n_votos/n_dep),
-        voto == "contra" ~ 0*(n_votos/n_dep)
+    # create df_unique, a dataset that has all the party combinations
+    # It must be ordered from left to right.
+    ordered_parties <- df_temp %>%
+      dplyr::distinct(partido) %>%
+      dplyr::arrange(factor(partido, levels = vec_parties))
+
+    # Create all the combinations (event with themselves)
+    df_unique <- tidyr::expand_grid(partido = ordered_parties$partido,
+                                    partido2 = ordered_parties$partido)
+
+    # This is the dataset I want to fill to them feed to ggplot.
+
+    # Nest, in each bill, a vector that is the proximity combination of each party combination.
+    # It's the lower triangular part of a prox matrix, from top to bottom, left to right.
+    # It must be a nested tibble, cannot be a list, because of the boot function.
+    df_nest_bill <- df_temp %>%
+      prox_by_bill()
+
+    # Calculate the party proximity
+    perc_match_vec <- df_nest_bill %>%
+      boot_prox()
+
+    # Calculate the amount of votes
+    n_votes_vec <- df_nest_bill %>%
+      boot_prox(type = "length")
+
+    # I must now stretch these vectors to go from the lower triangular part of the matrix
+    # to the full matrix. The proximity matrix is symmetric
+
+    # The diagonal will get 1's automatically
+    df_unique$perc_match <- perc_match_vec %>% stretch_for_df_unique()
+
+    # For the quantity of bills, I must choose the diagonal for n_botes
+    n_for_diag <- df_temp %>%
+      dplyr::count(partido) %>%
+      dplyr::arrange(factor(partido, levels = vec_parties)) %>%
+      dplyr::pull(n)
+
+    df_unique$n_votes <- n_votes_vec %>% stretch_for_df_unique(diag_to_insert = n_for_diag)
+
+    # All the parties that never meet get NA's
+    df_unique[df_unique == "NaN"] <- NA
+
+    # turn the proximity combos below min_n_votes into NA
+    df_unique %<>%
+      dplyr::mutate(perc_match = dplyr::case_when(
+        n_votes < min_n_votes ~ NA,
+        TRUE ~ perc_match
       ))
 
-    df_temp %<>% dplyr::count(id_vot,
-                       partido,
-                       wt = idv,
-                       name = "idv")
+    if (inference == TRUE) {
 
-    #this creates a dataset with all possible combinations from 2 vectors
-    df_unique <- tidyr::expand_grid(id_vot = unique(df_temp$id_vot),
-                             partido = unique(df_temp$partido),
-                             partido2 = unique(df_temp$partido))
+      #-----------#
+      # Inference #
+      #-----------#
 
-
-    # add the vote of partido in a given bill
-    df_unique %<>%
-      dplyr::left_join(df_temp %>%
-                  dplyr::select(id_vot, partido, idv),
-                by = c("id_vot", "partido"))
-
-    df_unique %<>%
-      dplyr::left_join(df_temp %>%
-                  dplyr::select(id_vot, partido, idv) %>%
-                  dplyr::rename(partido2 = partido,
-                         idv2 = idv),
-                by = c("id_vot", "partido2"))
-
-    df_unique %<>%
-      #the absolute value of the difference
-      dplyr::mutate(dismatch = abs(idv - idv2) %>% as.numeric(),
-             match_approve = dplyr::case_when(idv == 1 ~ idv2,
-                                       TRUE ~ NA),
-             match_disapprove = dplyr::case_when(idv == 0 ~ 1 - idv2,
-                                          TRUE ~ NA)
+      # Inference using bootstrap at the level of each bill
+      set.seed(seed_for_boot)
+      res <- boot::boot(data = df_nest_bill,
+                        statistic = boot_prox,
+                        R = n_boot,
+                        stype = "i",
+                        sim = "ordinary", # I must explore what this means
+                        na_sub = TRUE # option of the boot_prox function
       )
 
-    #and then aggregate, in a percentage
-    # we have to remove the NA to be able not to account if a party disappears in a middle of a legis
-    df_matrix <- df_unique %>%
-      tidyr::drop_na(dismatch) %>%
-      dplyr::group_by(partido,
-               partido2) %>%
-      dplyr::reframe(perc_dismatch = mean(dismatch),
-              n_votes = dplyr::n(),
-              mean_dismatch_diff_min = dplyr::case_when( # need to be more than 1 and unique
-                length(dismatch) > 1 & length(unique(dismatch)) > 1 ~ (((t.test(dismatch))$conf.int)[1]), # devia ser infinito
-                TRUE ~ -1000
-              ),
-              mean_dismatch_diff_max = dplyr::case_when( # need to be more than 1 and unique
-                length(dismatch) > 1 & length(unique(dismatch)) > 1 ~ (((t.test(dismatch))$conf.int)[2]), # devia ser infinito
-                TRUE ~ 1000
-              )) %>%
-      dplyr::ungroup() %>%
+      # separate the -1 from the rest
+      na_vec <- rep(NA, length(res$t0))
 
-      #second join to take the voting direction into account
-      dplyr::left_join(df_unique %>%
-                         tidyr::drop_na(dismatch) %>%
-                         dplyr::filter(idv %in% c(0,1)) %>%
-                         dplyr::group_by(partido,
-                           partido2,
-                           idv) %>%
-                         dplyr::reframe(perc_match_for = sum(match_approve, na.rm = TRUE)/dplyr::n(),
-                          perc_match_against = sum(match_disapprove, na.rm = TRUE)/dplyr::n(),
-                          n_votes_for_against = dplyr::n()) %>%
-                         dplyr::ungroup() %>%
-                         dplyr::mutate(perc_match_for_against = dplyr::case_when(perc_match_for == 0|is.na(perc_match_for) ~ perc_match_against,
-                                                            perc_match_against == 0|is.na(perc_match_against) ~ perc_match_for)) %>%
-                         dplyr::select(!c(perc_match_for, perc_match_against)) %>%
-                  tidyr::pivot_wider(names_from = 'idv',
-                              #names_prefix = 'idv',
-                              values_from = c('perc_match_for_against', 'n_votes_for_against'))) %>%
-      dplyr::mutate(perc_match = (1-perc_dismatch)*100,
-             min_conf_interval = (1 - mean_dismatch_diff_max)*100,
-             max_conf_interval = (1 - mean_dismatch_diff_min)*100,
-             perc_match_for = perc_match_for_against_1*100,
-             perc_match_against = perc_match_for_against_0*100,
-             n_votes_for = n_votes_for_against_1,
-             n_votes_against = n_votes_for_against_0
-      )
+      # positions of non -1
+      pos <- which(res$t0 != -1)
+
+      # The indexes of the ones that don't have a -1
+      list_ci <- pos %>%
+        purrr::map(~{
+          a <- boot::boot.ci(res, type = "bca", index = .x)
+          a$bca[4:5] #return
+        })
+
+      ci_vec <- list_ci %>% unlist()
+      # get the upper and lower thresholds of the CI
+      low_ci_vec <- ci_vec[seq(1, length(list_ci)*2, by = 2)]
+      high_ci_vec <- ci_vec[seq(2, length(list_ci)*2, by = 2)]
+
+      # add the -1's
+      na_vec[pos] <- low_ci_vec
+      low_ci_vec <- na_vec
+
+      na_vec[pos] <- high_ci_vec
+      high_ci_vec <- na_vec
+
+      # add to df_unique
+      df_unique$low_ci <- low_ci_vec %>% stretch_for_df_unique()
+      df_unique$high_ci <- high_ci_vec %>% stretch_for_df_unique()
+
+      # in percentages
+      df_unique %<>%
+        dplyr::mutate(low_ci = (low_ci*100) %>% round(2),
+                      high_ci = (high_ci*100) %>% round(2))
 
 
-    #options on names
-    df_matrix %<>%
-      dplyr::mutate(dplyr::across(c(partido, partido2),              ~{
+    }
+
+    # Final toutches
+
+    # Change the names of some parties
+    df_unique %<>%
+      dplyr::mutate(dplyr::across(c(partido, partido2),
+                                  ~{
         dplyr::case_when( #all the parties that led to BE:
           .x %in% c("MDP/CDE") ~ "MDP",
           TRUE ~ .x
         )}))
 
 
-    #order of all parties
-    order_all_parties <- c("CDU",
-                           "PCP",
-                           "PEV",
-                           "ID",
-                           "MDP/CDE",
-                           "MDP",
-                           "BE",
-                           "UDP",
-                           "L",
-                           "PAN",
-                           "UEDS",
-                           "PS",
-                           "ASDI",
-                           "PSN",
-                           "PRD",
-                           "PSD",
-                           "IL",
-                           "CDS",
-                           "PPM",
-                           "CH")
+    p2 <- df_unique %>%
+      dplyr::mutate(perc_match = (perc_match*100) %>% round(2)
 
-    order <- dplyr::intersect(
-      order_all_parties,
-      df_matrix$partido %>% base::unique())
-
-    p2 <- df_matrix %>%
-      dplyr::mutate(perc_match = perc_match %>% round(2),
-             min_conf_interval = min_conf_interval %>% round(2),
-             max_conf_interval = max_conf_interval %>% round(2),
-             perc_match_for = perc_match_for %>% round(2),
-             perc_match_against = perc_match_against %>% round(2)
       ) %>%
-
       dplyr::filter(partido != "Independente" & partido2 != "Independente") %>%
-      dplyr::mutate(partido = partido %>% forcats::fct_relevel(order),
-             partido2 = partido2 %>% forcats::fct_relevel(rev(order))) %>%
-      dplyr::select(partido,
-             partido2,
-             perc_match,
-             n_votes,
-             min_conf_interval,
-             max_conf_interval,
-             perc_match_for,
-             perc_match_against,
-             n_votes_for,
-             n_votes_against)
+      dplyr::mutate(partido = partido %>% forcats::fct_relevel(ordered_parties$partido),
+                    partido2 = partido2 %>% forcats::fct_relevel(rev(ordered_parties$partido)))
+
+
+
   }
 
 
-  else{p2 = tibble::tibble(partido = 'Not available')}
+ if (plot == T) {
 
- if (exclude_plot == F) {
+   if (inference == T) {
+     matrix_chart =
+       p2 %>%
+       ggplot2::ggplot(ggplot2::aes(x = partido,
+                                    y = partido2,
+                                    fill = perc_match,
+                                    text = paste0(partido,
+                                                  #if(partido != partido2) #tentativa de resolver 'PS and PS'
+                                                  #  {paste0(" and ", partido2, "<br>")},
+                                                  #else
+                                                  #{""},
+                                                  " and ", partido2, "<br>",
+                                                  'N. votes: ', n_votes, "<br>",
+                                                  "Min. conf. interval: ", low_ci, '%',  '<br>',
+                                                  "Max. conf. interval: ", high_ci, '%',  '<br>')
+       )
+       ) +
+       ggplot2::geom_tile(color = "white",
+                          linetype = 1,
+                          lwd = 1) +
+       ggplot2::coord_fixed() + #fix as a square
+       ggplot2::geom_text(ggplot2::aes(label = paste0(round(perc_match), "%")),
+                          color = "white",
+                          size = ggplot2::rel(3.5),
+                          fontface = 'bold') +
+       ggplot2::scale_x_discrete(limits = NULL, expand = ggplot2::expansion(add = 0, mult = c(.01, .01))) +
+       ggplot2::scale_y_discrete(limits = NULL, expand = ggplot2::expansion(add = 0, mult = c(.01, .01))) +
+       ggplot2::scale_fill_gradientn(colours = RColorBrewer::brewer.pal(4,"BrBG"),
+                                     na.value = "grey20") +
+       ggplot2::theme_minimal() +
+       ggplot2::theme(legend.position = "none",
+                      axis.title = ggplot2::element_blank(),
+                      axis.text = ggplot2::element_text(size = ggplot2::rel(1))) #Trying to reduce distance from y axis to graph
+   }else{
+     matrix_chart =
+       p2 %>%
+       ggplot2::ggplot(ggplot2::aes(x = partido,
+                                    y = partido2,
+                                    fill = perc_match,
+                                    text = paste0(partido,
+                                                  #if(partido != partido2) #tentativa de resolver 'PS and PS'
+                                                  #  {paste0(" and ", partido2, "<br>")},
+                                                  #else
+                                                  #{""},
+                                                  " and ", partido2, "<br>",
+                                                  'N. votes: ', n_votes, "<br>")
+       )
+       ) +
+       ggplot2::geom_tile(color = "white",
+                          linetype = 1,
+                          lwd = 1) +
+       ggplot2::coord_fixed() + #fix as a square
+       ggplot2::geom_text(ggplot2::aes(label = paste0(round(perc_match), "%")),
+                          color = "white",
+                          size = ggplot2::rel(3.5),
+                          fontface = 'bold') +
+       ggplot2::scale_x_discrete(limits = NULL, expand = ggplot2::expansion(add = 0, mult = c(.01, .01))) +
+       ggplot2::scale_y_discrete(limits = NULL, expand = ggplot2::expansion(add = 0, mult = c(.01, .01))) +
+       ggplot2::scale_fill_gradientn(colours = RColorBrewer::brewer.pal(4,"BrBG"),
+                                     na.value = "grey20") +
+       ggplot2::theme_minimal() +
+       ggplot2::theme(legend.position = "none",
+                      axis.title = ggplot2::element_blank(),
+                      axis.text = ggplot2::element_text(size = ggplot2::rel(1))) #Trying to reduce distance from y axis to graph
 
-  matrix_chart =
-    p2 %>%
-    ggplot2::ggplot(ggplot2::aes(x = partido,
-               y = partido2,
-               fill = perc_match,
-               text = paste0(partido,
-                             #if(partido != partido2) #tentativa de resolver 'PS and PS'
-                             #  {paste0(" and ", partido2, "<br>")},
-                             #else
-                             #{""},
-                             " and ", partido2, "<br>",
-                             'N. votes: ', n_votes, "<br>",
-                             "Min. conf. interval: ", min_conf_interval, '%',  '<br>',
-                             "Max. conf. interval: ", max_conf_interval, '%',  '<br>')
-    )
-    ) +
-    ggplot2::geom_tile(color = "white",
-              linetype = 1,
-              lwd = 1) +
-    ggplot2::coord_fixed() + #fix as a square
-    ggplot2::geom_text(ggplot2::aes(label = paste0(round(perc_match), "%")),
-              color = "white",
-              size = ggplot2::rel(3.5),
-              fontface = 'bold') +
-    ggplot2::scale_x_discrete(limits = NULL, expand = ggplot2::expansion(add = 0, mult = c(.01, .01))) +
-    ggplot2::scale_y_discrete(limits = NULL, expand = ggplot2::expansion(add = 0, mult = c(.01, .01))) +
-    ggplot2::scale_fill_gradientn(colours = RColorBrewer::brewer.pal(4,"BrBG"),
-                                  na.value = "grey20") +
-    ggplot2::theme_minimal() +
-    ggplot2::theme(legend.position = "none",
-          axis.title = ggplot2::element_blank(),
-          axis.text = ggplot2::element_text(size = ggplot2::rel(1))) #Trying to reduce distance from y axis to graph
+   }
+
 
 
   if(plot_plotly == TRUE){

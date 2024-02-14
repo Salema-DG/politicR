@@ -10,6 +10,4 @@ df <- read_ar_data("df_1st_vote", path = "../Project_data_AR")
 # parties disappear
 
 
-df %>%
-  group_by(legis, )
 

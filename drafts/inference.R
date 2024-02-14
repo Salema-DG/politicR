@@ -1,4 +1,19 @@
 
+library(devtools)
+library(tidyverse)
+library(boot)
+
+load_all()
+data(ar_data)
+ar_data |>
+  prox_matrix(legislature = 15)
+
+ar_data |>
+  prox_matrix()
+
+ar_data %>% count(partido)
+#---------------------------------------------------------------------#
+
 
 
 
@@ -23,7 +38,7 @@ df_nest %>% boot_prox(indices = 1:11)
 
 res <- boot::boot(data = df_nest,
                   statistic = boot_prox,
-                  R = 10000,
+                  R = 1000,
                   stype = "i",
                   sim = "ordinary" # I must explore what this means
 )
@@ -92,7 +107,6 @@ load_all()
 df <- read_ar_data("df_1st_vote", path = "../Project_data_AR")
 
 df %>%
-  filter(legis == 15) %>%
   prox_by_bill()
 
 
