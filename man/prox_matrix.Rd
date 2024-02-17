@@ -22,7 +22,8 @@ prox_matrix(
   plot_plotly = TRUE,
   plot = TRUE,
   inference = F,
-  n_boot = 1000
+  n_boot = 1000,
+  seed_for_boot = 12345
 )
 }
 \arguments{
@@ -53,6 +54,8 @@ prox_matrix(
 \item{inference}{Use the bootstrapping inference to build confidence intervals.}
 
 \item{n_boot}{Number of re-sampling for the bootstrap.}
+
+\item{seed_for_boot}{Seed for the bootstap}
 }
 \value{
 A matrix graph.

@@ -22,6 +22,7 @@
 #' @param inference Use the bootstrapping inference to build confidence intervals.
 #' @param n_boot Number of re-sampling for the bootstrap.
 #' @param seed_for_boot Seed for the bootstap
+#' @param app Give a dataset ready to plot
 #'
 #' @return A matrix graph.
 #'
@@ -105,7 +106,8 @@ prox_matrix <- function(dataset,
                         plot = TRUE,
                         inference = F,
                         n_boot = 1000,
-                        seed_for_boot = 12345
+                        seed_for_boot = 12345,
+                        app = F
 ) {
 
   # for the global vars
@@ -118,6 +120,7 @@ prox_matrix <- function(dataset,
   perc_match_for_against_0 <- perc_match_for_against_1 <- proponente <-
   total_dep <- unanime <- vote_stage <- voto <- votos_legis_partido <- NULL
 
+  if (app == F) {
   #----------------------------------------------------------------------------#
   # Prepare the data: apply the user choices ####
   #----------------------------------------------------------------------------#
@@ -306,7 +309,7 @@ prox_matrix <- function(dataset,
 
 
   }
-
+  }
 
  if (plot == T) {
 
@@ -362,14 +365,14 @@ prox_matrix <- function(dataset,
                           linetype = 1,
                           lwd = 1) +
        ggplot2::coord_fixed() + #fix as a square
+       ggplot2::scale_fill_gradientn(colours = RColorBrewer::brewer.pal(4,"BrBG"),
+                                     na.value = "grey20") +
        ggplot2::geom_text(ggplot2::aes(label = paste0(round(perc_match), "%")),
                           color = "white",
                           size = ggplot2::rel(3.5),
                           fontface = 'bold') +
        ggplot2::scale_x_discrete(limits = NULL, expand = ggplot2::expansion(add = 0, mult = c(.01, .01))) +
        ggplot2::scale_y_discrete(limits = NULL, expand = ggplot2::expansion(add = 0, mult = c(.01, .01))) +
-       ggplot2::scale_fill_gradientn(colours = RColorBrewer::brewer.pal(4,"BrBG"),
-                                     na.value = "grey20") +
        ggplot2::theme_minimal() +
        ggplot2::theme(legend.position = "none",
                       axis.title = ggplot2::element_blank(),
