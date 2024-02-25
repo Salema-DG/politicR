@@ -23,7 +23,8 @@ prox_matrix(
   plot = TRUE,
   inference = F,
   n_boot = 1000,
-  seed_for_boot = 12345
+  seed_for_boot = 12345,
+  app = F
 )
 }
 \arguments{
@@ -56,6 +57,8 @@ prox_matrix(
 \item{n_boot}{Number of re-sampling for the bootstrap.}
 
 \item{seed_for_boot}{Seed for the bootstap}
+
+\item{app}{Give a dataset ready to plot}
 }
 \value{
 A matrix graph.
