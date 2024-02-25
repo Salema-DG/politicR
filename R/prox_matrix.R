@@ -120,7 +120,11 @@ prox_matrix <- function(dataset,
   perc_match_for_against_0 <- perc_match_for_against_1 <- proponente <-
   total_dep <- unanime <- vote_stage <- voto <- votos_legis_partido <- NULL
 
-  if (app == F) {
+  if(app == T){
+    p2 = dataset
+  }
+
+  else {
   #----------------------------------------------------------------------------#
   # Prepare the data: apply the user choices ####
   #----------------------------------------------------------------------------#
