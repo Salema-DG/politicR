@@ -13,6 +13,8 @@
 #'
 #' @return The response of chat GPT.
 #'
+#' @export
+#'
 #' @examples
 #' # key <- "sk-5-your-actual-api-key-Fvau6"
 #' # ask_chatgpt("Faz-me uma lista de frutas")
