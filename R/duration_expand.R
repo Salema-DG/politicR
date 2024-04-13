@@ -2,12 +2,15 @@
 #' @title Expand the dates to daily data
 #'
 #' @description
-#' This file...
+#' This function cam be applied to any data that has an indication of duration.
+#' If extends the info of the data to daily observations, considering the intervals.
 #'
-#'
+#' @param data a tibble
+#' @param start column with the beginning of the period mentioned
+#' @param end column indicating the end. Not a string
 #' @param group Group for which to expand
 #'
-#'
+#' @export
 #'
 #'
 
@@ -30,7 +33,7 @@ duration_expand <- function(data,
            {{group}} := Var2)
 
   # join by party and match the number in df_expanded to the time frame in df
-  by <- dplyr::join_by(partido, dplyr::between(duration, dur_inicial, dur_final,  bounds = "[]"))
+  by <- dplyr::join_by({{group}}, between(duration, dur_inicial, dur_final,  bounds = "[]"))
 
   df1 <- df_expanded %>%
     dplyr::left_join(data,

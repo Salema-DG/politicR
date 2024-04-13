@@ -7,8 +7,15 @@
 duration_expand(data, start, end, group)
 }
 \arguments{
+\item{data}{a tibble}
+
+\item{start}{column with the beginning of the period mentioned}
+
+\item{end}{column indicating the end. Not a string}
+
 \item{group}{Group for which to expand}
 }
 \description{
-This file...
+This function cam be applied to any data that has an indication of duration.
+If extends the info of the data to daily observations, considering the intervals.
 }

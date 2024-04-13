@@ -1,4 +1,20 @@
 
+#' @title Order the parties
+#'
+#' @description
+#' This function orders a factor variable containing parties according to their
+#' Left-right spectrum.
+#'
+#' @param data a tibble
+#' @param name Name of the column with party info
+#'
+#' @export
+#'
+#' @examples
+#' #data(ar_data)
+#' #ar_data %>% order_party(partido)
+#'
+#'
 
 order_party <- function(data,
                         name) {
@@ -16,7 +32,7 @@ order_party <- function(data,
 
   # apply tha order
   data %<>%
-    mutate("{name}" := {{ name }} %>% forcats::fct_relevel(order_all_parties))
+    dplyr::mutate({{name}} := {{ name }} %>% forcats::fct_relevel(order_all_parties))
 
   return(data)
 

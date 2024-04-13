@@ -13,6 +13,7 @@ Imports:
     dplyr,
     forcats,
     ggplot2,
+    httr,
     lubridate,
     magrittr,
     Matrix,
