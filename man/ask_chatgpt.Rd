@@ -3,15 +3,35 @@
 \name{ask_chatgpt}
 \alias{ask_chatgpt}
 \title{Calls the ChatGPT API}
+\source{
+https://www.listendata.com/2023/05/chatgpt-in-r.html
+}
 \usage{
-ask_chatgpt(prompt, api_key = key, cat = TRUE, version = "gpt-3.5-turbo")
+ask_chatgpt(
+  prompt,
+  api_key = Sys.getenv("chatGPT_API_KEY"),
+  cat = TRUE,
+  version = "gpt-3.5-turbo",
+  temperature = 1,
+  system_role = NULL,
+  full_response = F,
+  stop_if_incomplete = F
+)
 }
 \arguments{
-\item{api_key}{A string. Secret key for chatGPT API account. By default, it's an object named key.}
+\item{api_key}{When you run the function above first time, it will ask you to enter your API Key. It will save the API Key in chatGPT_API_KEY environment variable so it won't ask for API Key when you run the function next time. Sys.setenv( ) is to store API Key whereas Sys.getenv( ) is to pull the stored API Key.}
 
 \item{cat}{Logical value. Apply cat() to the output. TRUE is the default.}
 
 \item{version}{What is the version of chatGPT. "gpt-3.5-turbo" is the default.}
+
+\item{temperature}{Number from 0 to 2. Detault is 0. Used to control the creativity or randomness of the generated text. A higher temperature value will make the model more likely to generate more surprising and unexpected responses.}
+
+\item{system_role}{Provide a string for the system role. Here you can say "act like the president" or "answer in a funny way".}
+
+\item{full_response}{Default is false. If true, returns every parameter of the response.}
+
+\item{stop_if_incomplete}{Logical value indication whether a response should be returned if not complete.}
 
 \item{promt}{Text for chat GPT. A string.}
 }
@@ -21,10 +41,13 @@ The response of chat GPT.
 \description{
 This function calls the chatGPT API
 with the given prompt and returns the answer.
-Taken from: https://www.r-bloggers.com/2023/03/call-chatgpt-or-really-any-other-api-from-r/
 }
 \examples{
-# key <- "sk-5-your-actual-api-key-Fvau6"
+# You can set the API key when the function asks so. but this is how to do it in a script.
+# Sys.setenv(chatGPT_API_KEY = "APIKey") # Set API Key
+# Sys.getenv("chatGPT_API_KEY") # Get API Key
+
+# usage of the function:
 # ask_chatgpt("Faz-me uma lista de frutas")
-# ask_chatgpt("Faz-me uma lista de frutas", cat = F)
+# ask_chatgpt("Faz-me uma lista de frutas", cat = F, temperature = 1.6)
 }
