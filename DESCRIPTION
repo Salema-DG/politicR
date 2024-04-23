@@ -12,6 +12,7 @@ Imports:
     boot,
     dplyr,
     forcats,
+    furrr,
     ggplot2,
     httr,
     lubridate,
