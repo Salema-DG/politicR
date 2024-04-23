@@ -2,7 +2,7 @@
 % Please edit documentation in R/prox_by_bill.R
 \name{prox_by_bill}
 \alias{prox_by_bill}
-\title{Create a proximity matrix for each bill ####}
+\title{Create a proximity matrix for each bill}
 \usage{
 prox_by_bill(data, type = "tibble", order = "leftright")
 }

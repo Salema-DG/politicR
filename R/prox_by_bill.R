@@ -1,5 +1,5 @@
 
-#' @title Create a proximity matrix for each bill ####
+#' @title Create a proximity matrix for each bill
 #'
 #' @description
 #' This function transforms a tidy dataset with roll-call data into party proximity by each vote.

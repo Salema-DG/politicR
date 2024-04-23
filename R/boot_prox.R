@@ -22,7 +22,8 @@
 boot_prox <- function(data,
                       indices = NULL,
                       type = "mean",
-                      na_sub = FALSE
+                      na_sub = FALSE,
+                      vec_salience = NULL
 ) {
 
   # if the value is not suplied
@@ -74,6 +75,17 @@ boot_prox <- function(data,
         .x[!is.na(.x)]
       }) %>%
       purrr::map(length) %>%
+      unlist()
+  }
+
+  if (type == "salience") {
+    x <- 1:np %>% purrr::map(~{
+      vector[seq(.x, np*nl, by = np)]
+    }) %>%
+      purrr::map(~{
+                    politicR::weight_salience(.x,
+                                              (d %>% pull({{vec_salience}}) ) )
+                  }) %>%
       unlist()
   }
 

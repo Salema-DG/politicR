@@ -107,7 +107,8 @@ prox_matrix <- function(dataset,
                         inference = F,
                         n_boot = 1000,
                         seed_for_boot = 12345,
-                        app = F
+                        app = F,
+                        weight_by_salience = FALSE
 ) {
 
   # for the global vars
@@ -143,7 +144,8 @@ prox_matrix <- function(dataset,
            bill_type,
            vote_stage,
            proponente,
-           votos_legis_partido)
+           votos_legis_partido,
+           media_index)
 
   # Restrict the dataset from the chosen restrictions
   df_temp <-
@@ -205,9 +207,22 @@ prox_matrix <- function(dataset,
     df_nest_bill <- df_temp %>%
       prox_by_bill()
 
-    # Calculate the party proximity
-    perc_match_vec <- df_nest_bill %>%
-      boot_prox()
+    if (weight_by_salience == F) {
+      # Calculate the party proximity
+      perc_match_vec <- df_nest_bill %>%
+        boot_prox()
+    }else{
+      # Calculate the party proximity
+      perc_match_vec <- df_nest_bill %>%
+        left_join(df_temp %>%
+                    dplyr::distinct(id_vot,
+                           media_index),
+                  by = "id_vot") %>%
+        boot_prox(type = "salience",
+                  vec_salience = media_index)
+    }
+
+
 
     # Calculate the amount of votes
     n_votes_vec <- df_nest_bill %>%

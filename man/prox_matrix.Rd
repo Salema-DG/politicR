@@ -24,7 +24,8 @@ prox_matrix(
   inference = F,
   n_boot = 1000,
   seed_for_boot = 12345,
-  app = F
+  app = F,
+  weight_by_salience = FALSE
 )
 }
 \arguments{

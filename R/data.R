@@ -14,14 +14,14 @@
 #' @source {
 #' Data created in-house to use as an example.
 #' Code:
-#' df <- read_ar_data(path = "../Project_data_AR", name = "df_1st_vote")
+#' df <- read_ar_data(path = "../Project_data_AR", name = "df_1st_vote+index")
 #' set.seed(12345)
 #' id_vot_select <- df %>% distinct(id_vot) %>% dplyr::slice_sample(prop = 0.01) %>% pull(id_vot)
 #' ar_data <- df %>% filter(id_vot %in% id_vot_select)
 #' ar_data %<>% select(id_vot, data, partido, voto, n_votos, unanime,
 #'                     id_ati, id_com, id_com_cross, id_ini, tipo_ini,
 #'                     tipo_atividade, proponente, legis, n_dep, total_dep,
-#'                     bill_type, vote_stage, votos_legis_partido)
+#'                     bill_type, vote_stage, votos_legis_partido, media_index)
 #' use_data(ar_data,
 #'          compress = "xz",
 #'          overwrite = T)

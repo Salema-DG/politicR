@@ -4,7 +4,13 @@
 \alias{boot_prox}
 \title{Bootstap Funtion for Party Proximity}
 \usage{
-boot_prox(data, indices = NULL, type = "mean", na_sub = FALSE)
+boot_prox(
+  data,
+  indices = NULL,
+  type = "mean",
+  na_sub = FALSE,
+  vec_salience = NULL
+)
 }
 \arguments{
 \item{data}{A tibble where each line is a bill, and has a proximity vector nested,}
