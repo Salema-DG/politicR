@@ -9,7 +9,9 @@ media_bill_count(
   var_entity,
   var_date,
   data_media,
+  var_media_date,
   var_news,
+  var_news_title,
   days_treshold = 365
 )
 }
@@ -44,7 +46,9 @@ plan(multisession, workers = x) and with the furrr package loaded.
 #   media_bill_counts(entity,
 #                     date,
 #                     df_desarquivo,
-#                     text)
+#                     data,
+#                     text,
+#                     titulos)
 
 
 }

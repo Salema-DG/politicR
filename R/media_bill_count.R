@@ -28,7 +28,9 @@
 #' #   media_bill_counts(entity,
 #' #                     date,
 #' #                     df_desarquivo,
-#' #                     text)
+#' #                     data,
+#' #                     text,
+#' #                     titulos)
 #'
 #'
 
@@ -36,7 +38,9 @@ media_bill_count = function(data,
                             var_entity,
                             var_date,
                             data_media,
+                            var_media_date,
                             var_news,
+                            var_news_title,
                             days_treshold = 365){
 
   list_match <- data %>%
@@ -47,8 +51,8 @@ media_bill_count = function(data,
 
                           df_temp <- data_media %>%
                             dplyr::filter(.y %within%
-                                            interval(lubridate::ymd(date) - days_treshold,
-                                                     lubridate::ymd(date) + days_treshold) == T)
+                                            interval(lubridate::ymd({{var_media_date}}) - days_treshold,
+                                                     lubridate::ymd({{var_media_date}}) + days_treshold) == T)
 
                           # extensive margin: does a certain entity appear in a bill title?
                           n_ext <- .x %>%
@@ -76,14 +80,25 @@ media_bill_count = function(data,
                             unlist() %>%
                             sum()
 
-                          c(n_ext, n_ext_int)
+                          n_title_ext <- .x %>%
+                            purrr::map(function(entity) {
+
+                              stringr::str_detect((df_temp %>% dplyr::pull({{var_news_title}})),
+                                                  entity) %>%
+                                sum()
+                            }) %>%
+                            unlist() %>%
+                            sum()
+
+                          c(n_ext, n_ext_int, n_title_ext)
 
                         },
                         .progress = TRUE)
 
   # add the new name
   data %<>% dplyr::mutate(ext_margin = list_match %>% purrr::map(`[[`, 1) %>% unlist(),
-                          ext_int_margin = list_match %>% purrr::map(`[[`, 2) %>% unlist())
+                          ext_int_margin = list_match %>% purrr::map(`[[`, 2) %>% unlist(),
+                          title = list_match %>% purrr::map(`[[`, 3) %>% unlist())
 
   return(data)
 }
