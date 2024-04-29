@@ -12,7 +12,9 @@ media_bill_count(
   var_media_date,
   var_news,
   var_news_title,
-  days_treshold = 365
+  var_news_id,
+  days_treshold = 365,
+  ratio_entity_presence = 0.9
 )
 }
 \arguments{
@@ -24,12 +26,20 @@ media_bill_count(
 
 \item{data_media}{Data with the media news}
 
+\item{var_media_date}{Name of the variable with the news time stamp or date.}
+
 \item{var_news}{Name of the variable of the news to use. It can refer to texts, titles, subtitles, etc. Not a string.}
 
+\item{var_news_title}{Name of the varaible with the news titles}
+
+\item{var_news_id}{A unique ID idintifying the news article saved by Arquivo.pt}
+
 \item{days_treshold}{How many days should be given as an interval. The dates of the news are noisy, thus this should be high.}
+
+\item{ratio_entity_presence}{How many (in share) of the bill's entities must be in the same article to be considered a match.}
 }
 \value{
-data with 2 columns, one for extensive and other for extensive plus intensive margin.
+data with 2 columns, one for extensive and other for extensive plus intensive margin. Plus a vector with all the id of the bills mentioned.
 }
 \description{
 This function takes the entities in the title of bills and counts how many
