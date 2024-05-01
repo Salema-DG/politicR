@@ -136,7 +136,7 @@ media_bill_count = function(data,
                           # given the already selectedc laws
 
                           # extensive margin: does the law appear?
-                          n_ext <- length(vec_use_news)
+                          n_ext <- length(vec_news_id)
 
 
                           # extensive and intensive margin: how many times does a certain entity appear in a bill title?
