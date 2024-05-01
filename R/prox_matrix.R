@@ -111,16 +111,6 @@ prox_matrix <- function(dataset,
                         weight_by_salience = FALSE
 ) {
 
-  # for the global vars
-  bill_type <- data <- dismatch <- id_com_cross <-
-  id_vot <- idv <- idv2 <- legis <- match_approve <- match_disapprove <-
-  max_conf_interval <- mean_dismatch_diff_max <- mean_dismatch_diff_min <-
-  min_conf_interval <- n <- n_dep <- n_votes <- n_votes_against <- n_votes_for <-
-  n_votes_for_against_0 <- n_votes_for_against_1 <- n_votos <- partido <- partido2 <-
-  perc_dismatch <- perc_match <- perc_match_against <- perc_match_for <-
-  perc_match_for_against_0 <- perc_match_for_against_1 <- proponente <-
-  total_dep <- unanime <- vote_stage <- voto <- votos_legis_partido <- NULL
-
   if(app == T){
     p2 = dataset
   }
@@ -214,7 +204,7 @@ prox_matrix <- function(dataset,
     }else{
       # Calculate the party proximity
       perc_match_vec <- df_nest_bill %>%
-        left_join(df_temp %>%
+        dplyr::left_join(df_temp %>%
                     dplyr::distinct(id_vot,
                            media_index),
                   by = "id_vot") %>%
@@ -259,14 +249,28 @@ prox_matrix <- function(dataset,
       #-----------#
 
       # Inference using bootstrap at the level of each bill
-      set.seed(seed_for_boot)
-      res <- boot::boot(data = df_nest_bill,
-                        statistic = boot_prox,
-                        R = n_boot,
-                        stype = "i",
-                        sim = "ordinary", # I must explore what this means
-                        na_sub = TRUE # option of the boot_prox function
-      )
+      if (weight_by_salience == T) {
+        set.seed(seed_for_boot)
+        res <- boot::boot(data = df_nest_bill,
+                          statistic = boot_prox,
+                          R = n_boot,
+                          stype = "i",
+                          sim = "ordinary", # I must explore what this means
+                          na_sub = TRUE, # option of the boot_prox function
+                          type = "salience",
+                          vec_salience = media_index
+        )
+
+      }else{
+        set.seed(seed_for_boot)
+        res <- boot::boot(data = df_nest_bill,
+                          statistic = boot_prox,
+                          R = n_boot,
+                          stype = "i",
+                          sim = "ordinary", # I must explore what this means
+                          na_sub = TRUE # option of the boot_prox function
+        )
+      }
 
       # separate the -1 from the rest
       na_vec <- rep(NA, length(res$t0))
@@ -414,3 +418,49 @@ prox_matrix <- function(dataset,
  }
 
 }
+
+globalVariables(c(
+  "media_index",
+  "low_ci",
+  "high_ci",
+  "bill_type",
+  "data",
+  "dismatch",
+  "id_com_cross",
+  "id_vot",
+  "idv",
+  "idv2",
+  "legis",
+  "match_approve",
+  "match_disapprove",
+  "max_conf_interval",
+  "mean_dismatch_diff_max",
+  "mean_dismatch_diff_min",
+  "min_conf_interval",
+  "n",
+  "n_dep",
+  "n_votes",
+  "n_votes_against",
+  "n_votes_for",
+  "n_votes_for_against_0",
+  "n_votes_for_against_1",
+  "n_votos",
+  "partido",
+  "partido2",
+  "perc_dismatch",
+  "perc_match",
+  "perc_match_against",
+  "perc_match_for",
+  "perc_match_for_against_0",
+  "perc_match_for_against_1",
+  "proponente",
+  "total_dep",
+  "unanime",
+  "vote_stage",
+  "voto",
+  "votos_legis_partido"
+))
+
+
+
+

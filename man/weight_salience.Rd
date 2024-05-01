@@ -2,7 +2,7 @@
 % Please edit documentation in R/weight_salience.R
 \name{weight_salience}
 \alias{weight_salience}
-\title{Weight bills by their importance.}
+\title{Weighted average of a vector}
 \usage{
 weight_salience(vec_prox, vec_media_index)
 }
@@ -16,6 +16,8 @@ The proximity of the parties weighted by the importance.
 }
 \description{
 With just two inputs, it creates a weighted average with normalization.
+USed to weight bills by their importance.
+At the end, it's normalized for the weights to be independent of the scale used.
 }
 \examples{
 # The proximities between two parties over 5 bills

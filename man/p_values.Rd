@@ -22,16 +22,16 @@ available in the function p-adjust.
 Type ?p.adjust.methods for an overvierw.
 }
 \examples{
-# load an example dataset
-data(mtcars)
-
-# estimate a linear model
-m <- lm(mpg ~ as.factor(cyl) + hp + wt + am, data = mtcars)
-
-# extract the non-corrected p-values
-p_values(m)
-
-# extract p-values corrected with the Holm metghod.
-m |> p_values(correction = "holm")
+## load an example dataset
+#data(mtcars)
+#
+## estimate a linear model
+#m <- lm(mpg ~ as.factor(cyl) + hp + wt + am, data = mtcars)
+#
+## extract the non-corrected p-values
+#p_values(m)
+#
+## extract p-values corrected with the Holm metghod.
+#m |> p_values(correction = "holm")
 
 }

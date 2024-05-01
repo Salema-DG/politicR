@@ -16,17 +16,17 @@
 #' @importFrom magrittr %>%
 #'
 #' @examples
-#' # load an example dataset
-#' data(mtcars)
-#'
-#' # estimate a linear model
-#' m <- lm(mpg ~ as.factor(cyl) + hp + wt + am, data = mtcars)
-#'
-#' # extract the non-corrected p-values
-#' p_values(m)
-#'
-#' # extract p-values corrected with the Holm metghod.
-#' m |> p_values(correction = "holm")
+#' ## load an example dataset
+#' #data(mtcars)
+#'#
+#' ## estimate a linear model
+#' #m <- lm(mpg ~ as.factor(cyl) + hp + wt + am, data = mtcars)
+#'#
+#' ## extract the non-corrected p-values
+#' #p_values(m)
+#'#
+#' ## extract p-values corrected with the Holm metghod.
+#' #m |> p_values(correction = "holm")
 #'
 
 p_values <- function(lm_object,

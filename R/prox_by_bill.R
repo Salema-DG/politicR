@@ -180,3 +180,13 @@ prox_by_bill <- function(data,
   return(nested_tibble)
 
 }
+
+globalVariables(c(
+  "id_vot",
+  "partido",
+  "voto",
+  ".",
+  "distance",
+  "n"
+))
+

@@ -2,7 +2,7 @@
 % Please edit documentation in R/boot_prox.R
 \name{boot_prox}
 \alias{boot_prox}
-\title{Bootstap Funtion for Party Proximity}
+\title{Bootstrap Function for Party Proximity}
 \usage{
 boot_prox(
   data,
@@ -13,22 +13,25 @@ boot_prox(
 )
 }
 \arguments{
-\item{data}{A tibble where each line is a bill, and has a proximity vector nested,}
+\item{data}{A tibble where each line is a bill, and has a proximity vector nested.}
 
-\item{indices}{The indexes to be retured. Necessary for the bootstrap.}
+\item{indices}{The indexes to be returned. Necessary for the bootstrap.}
 
-\item{type}{Can either be "mean" (default) or "length" for the number of bills.}
+\item{type}{Can either be "mean" (default), "length" for the number of bills or "salience" for a weighted average.}
 
 \item{na_sub}{Logical values. If 2 parties never meet each other, substitute the output NA to -1. Only for type = "mean".}
+
+\item{vec_salience}{Name of the column with a vector of weights.}
 }
 \value{
 A vector with party proximities or number of bills voted by party combination. Only the lower triangular part of a proximity matrix, from top to bottom, from left to right.
 }
 \description{
-This function takes the output from politicR::prox_by_bill and agreagates all the bills.
+This function takes the output from politicR::prox_by_bill and aggregates all the bills.
 The function can make the average proximity, and number of bills of two parties.
-But the main feature is perforing this agregation while disregarding some bills using "indeces".
-That allows the function to be used in the bootspraping function boot::boot.
+But the main feature is performing this aggregation while disregarding some bills using "indeces".
+That allows the function to be used in the bootstrapping function boot::boot.
+The function handles weights given by the media coverage.
 }
 \examples{
 #ta bem

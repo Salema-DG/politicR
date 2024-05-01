@@ -48,3 +48,14 @@ duration_expand <- function(data,
   return(df1)
 
 }
+
+
+globalVariables(c(
+  "Var1",
+  "Var2",
+  "between",
+  "duration",
+  "dur_inicial",
+  "dur_final"
+))
+
