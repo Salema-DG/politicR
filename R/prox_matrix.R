@@ -209,7 +209,7 @@ prox_matrix <- function(dataset,
                            media_index),
                   by = "id_vot") %>%
         boot_prox(type = "salience",
-                  vec_salience = media_index)
+                  salience = media_index)
     }
 
 
@@ -258,7 +258,7 @@ prox_matrix <- function(dataset,
                           sim = "ordinary", # I must explore what this means
                           na_sub = TRUE, # option of the boot_prox function
                           type = "salience",
-                          vec_salience = media_index
+                          salience = "media_index"
         )
 
       }else{

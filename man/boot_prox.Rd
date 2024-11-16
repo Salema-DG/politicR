@@ -4,13 +4,7 @@
 \alias{boot_prox}
 \title{Bootstrap Function for Party Proximity}
 \usage{
-boot_prox(
-  data,
-  indices = NULL,
-  type = "mean",
-  na_sub = FALSE,
-  vec_salience = NULL
-)
+boot_prox(data, indices = NULL, type = "mean", na_sub = FALSE, salience = NULL)
 }
 \arguments{
 \item{data}{A tibble where each line is a bill, and has a proximity vector nested.}
@@ -21,7 +15,7 @@ boot_prox(
 
 \item{na_sub}{Logical values. If 2 parties never meet each other, substitute the output NA to -1. Only for type = "mean".}
 
-\item{vec_salience}{Name of the column with a vector of weights.}
+\item{salience}{Name of the column with a vector of weights.}
 }
 \value{
 A vector with party proximities or number of bills voted by party combination. Only the lower triangular part of a proximity matrix, from top to bottom, from left to right.

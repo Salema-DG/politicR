@@ -12,7 +12,7 @@
 #' @param indices The indexes to be returned. Necessary for the bootstrap.
 #' @param type Can either be "mean" (default), "length" for the number of bills or "salience" for a weighted average.
 #' @param na_sub Logical values. If 2 parties never meet each other, substitute the output NA to -1. Only for type = "mean".
-#' @param vec_salience Name of the column with a vector of weights.
+#' @param salience Name of the column with a vector of weights.
 #'
 #' @return A vector with party proximities or number of bills voted by party combination. Only the lower triangular part of a proximity matrix, from top to bottom, from left to right.
 #'
@@ -26,7 +26,7 @@ boot_prox <- function(data,
                       indices = NULL,
                       type = "mean",
                       na_sub = FALSE,
-                      vec_salience = NULL
+                      salience = NULL
 ) {
 
   # if the value is not suplied
@@ -87,7 +87,7 @@ boot_prox <- function(data,
     }) %>%
       purrr::map(~{
                     politicR::weight_salience(.x,
-                                              (d %>% pull({{vec_salience}}) ) )
+                                              (d %>% dplyr::pull({{salience}}) ) )
                   }) %>%
       unlist()
   }
