@@ -6,6 +6,7 @@
 #' @param x A numeric vector.
 #' @param na.rm A logical value indicating whether `NA` values should be removed before the computation.
 #' The default is `TRUE`.
+#' @param single_value Instead of attributing `NA` to single value vectors, atributes 0.
 #'
 #' @return A numeric value representing the population variance of the input vector.
 #'
@@ -23,9 +24,14 @@
 #'
 #' @export
 #'
-variance <- function(x, na.rm = TRUE) {
+variance <- function(x, na.rm = TRUE, single_value = TRUE) {
+
   n <- if (na.rm) sum(!is.na(x)) else length(x)
   y <- stats::var(x, na.rm = na.rm) * (n - 1) / n
+
+  if (single_value == TRUE & n == 1) {
+    y <- 0
+  }
 
   return(y)
 }

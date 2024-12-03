@@ -4,13 +4,15 @@
 \alias{variance}
 \title{Compute Population Variance}
 \usage{
-variance(x, na.rm = TRUE)
+variance(x, na.rm = TRUE, single_value = TRUE)
 }
 \arguments{
 \item{x}{A numeric vector.}
 
 \item{na.rm}{A logical value indicating whether \code{NA} values should be removed before the computation.
 The default is \code{TRUE}.}
+
+\item{single_value}{Instead of attributing \code{NA} to single value vectors, atributes 0.}
 }
 \value{
 A numeric value representing the population variance of the input vector.
